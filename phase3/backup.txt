@@ -1,0 +1,76 @@
+		| multiplicativeexp ADD expression {
+                     $$ = new expression_struct();
+                     ostringstream os;
+                     string temp2 = createTemp();
+                     os << $1->code << endl;
+                     os << $3->code << endl;
+                     os << ". " << temp2 << endl;
+                     os << "+ " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                     $$->resultID = temp2;
+                     $$->code = os.str();
+                  }
+                | multiplicativeexp SUB expression         {
+                     $$ = new expression_struct();
+                     ostringstream os;
+                     string temp2 = createTemp();
+                     os << $1->code << endl;
+                     os << $3->code << endl;
+                     os << ". " << temp2 << endl;
+                     os << "- " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                     $$->resultID = temp2;
+                     $$->code = os.str();
+                  }
+
+
+
+term multhelper {
+                        $$ = new multiplicativeexp_struct();
+                        ostringstream os;
+                        os << $1->code;
+                        $$->code = os.str();
+                        ostringstream os1;
+                        os1 << $1->resultID;
+                        $$->resultID = os1.str();
+                     }
+                    | term MULT multiplicativeexp {
+                        $$ = new multiplicativeexp_struct();
+                        ostringstream os;
+                        string temp2 = createTemp();
+                        os << $1->code << endl;
+                        os << $3->code << endl;
+                        os << ". " << temp2 << endl;
+                        os << "* " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                        $$->resultID = temp2;
+                        $$->code = os.str();
+                    }
+                    | term DIV multiplicativeexp {
+                        $$ = new multiplicativeexp_struct();
+                        ostringstream os;
+                        string temp = createTemp();
+                        os << ". " << temp << endl;
+                        os << "= " << temp << ", " << $1->code << endl;
+                        string temp1 = createTemp();
+                        os << ". " << temp1 << endl;
+                        os << "= " << temp1 << ", " << $3->code << endl;
+                        string temp2 = createTemp();
+                        os << ". " << temp2 << endl;
+                        os << "/ " << temp2 << ", " << temp << ", " << temp1 << endl;
+                        $$->resultID = temp2;
+                        $$->code = os.str();
+                    }
+                    | term MOD multiplicativeexp {
+                        $$ = new multiplicativeexp_struct();
+                        ostringstream os;
+                        string temp = createTemp();
+                        os << ". " << temp << endl;
+                        os << "= " << temp << ", " << $1->code << endl;
+                        string temp1 = createTemp();
+                        os << ". " << temp1 << endl;
+                        os << "= " << temp1 << ", " << $3->code << endl;
+                        string temp2 = createTemp();
+                        os << ". " << temp2 << endl;
+                        os << "% " << temp2 << ", " << temp << ", " << temp1 << endl;
+                        $$->resultID = temp2;
+                        $$->code = os.str();
+                    }
+                    ;

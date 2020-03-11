@@ -1,0 +1,10 @@
+func main
+. n
+.< n
+. __temp__1
+* __temp__1, . __temp__0
+= __temp__0, n
+, 
+= n, __temp__1
+.> n
+endfunc
