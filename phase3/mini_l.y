@@ -197,7 +197,12 @@ declaration:    identifier COMMA declaration         {printf("declaration -> ide
                   delete $1;
                   $$->code = os.str();
                }
-                | identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER         {printf("declaration -> identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER\n");}
+                | identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER {
+                   $$ = new declaration_struct();
+                   ostringstream os;
+                   os << ". [] " << $1->resultID << ", " << $5->resultID << endl;
+                   $$->code = os.str();
+                }
                ;
 
 number:     NUMBER     {
@@ -462,7 +467,9 @@ var:        identifier {
                os1 << $1->resultID;
                $$->resultID = os1.str();
             }
-            | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {printf("var -> identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET\n");}
+            | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {
+               
+            }
             ;
 
 expresscomm:    expression                 {printf("expresscomm -> expression\n");}
