@@ -53,10 +53,12 @@
  struct term_struct {
     string code;
     string resultID;
+    string type;
  };
  struct term1_struct {
     string code;
     string resultID;
+    string type;
  };
  struct expression_struct {
     string code;
@@ -84,10 +86,14 @@
  struct var_struct {
     string code;
     string resultID;
+    string type;
+    string index;
  };
  struct varline_struct {
     string code;
     string resultID;
+    string type;
+    string index;
  };
  struct number_struct {
     string code;
@@ -101,7 +107,9 @@
  int yylex();
  int tempCounter = 0;
  string createTemp(){
-    return "__temp__" + to_string(tempCounter++);
+    ostringstream os;
+    os << "__temp__" << tempCounter++;
+    return os.str();
  }
 %}
 
@@ -200,7 +208,8 @@ declaration:    identifier COMMA declaration         {printf("declaration -> ide
                 | identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER {
                    $$ = new declaration_struct();
                    ostringstream os;
-                   os << ". [] " << $1->resultID << ", " << $5->resultID << endl;
+                   os << ". " << $1->code << endl;
+                   os << ".[] " << $1->resultID << ", " << $5->resultID << endl;
                    $$->code = os.str();
                 }
                ;
@@ -240,9 +249,14 @@ identifier:    IDENT   {
 statement:  var ASSIGN expression{  
                $$ = new statement_struct();
                ostringstream os;
-               //os <<  $1->code;
+               os <<  $1->code;
                os <<  $3->code << endl;
-               os << "= " << $1->resultID << ", " << $3->resultID << endl;
+               string tp = $1->type;
+               if(tp == "ident")
+                  os << "= " << $1->resultID;
+               else if(tp == "array")
+                  os << "[]= " << $1->resultID << ", " << $1->index;
+               os  << ", " << $3->resultID << endl;
                delete $1;
                delete $3;
                $$->code = os.str();
@@ -254,14 +268,33 @@ statement:  var ASSIGN expression{
             | READ varline {
                $$ = new statement_struct();
                ostringstream os;
-               os << ".< " << $2->resultID << endl;
+               if(tp == "array"){
+                  string temp = createTemp();
+                  os << ". " << temp << endl;
+                  //possible temp declaration bug
+                  os << ". " << $2->index << endl;
+                  os << "=[] " << temp << ", " << $2->resultID << ", " << $2->index << endl;
+                  os << ".> " << temp << endl;
+               }
+               else
+                  os << ".< " << $2->resultID<< endl;
                delete $2;
                $$->code = os.str();
             }
             | WRITE varline {
                $$ = new statement_struct();
                ostringstream os;
-               os << ".> " << $2->code<< endl;
+               string tp = $2->type;
+               if(tp == "array"){
+                  string temp = createTemp();
+                  os << ". " << temp << endl;
+                  //possible temp declaration bug
+                  os << ". " << $2->index << endl;
+                  os << "=[] " << temp << ", " << $2->resultID << ", " << $2->index << endl;
+                  os << ".> " << temp << endl;
+               }
+               else
+                  os << ".> " << $2->resultID<< endl;
                $$->code = os.str();
                delete $2;
                }
@@ -280,6 +313,8 @@ varline:    var {
                ostringstream os1;
                os1 << $1->resultID;
                $$->resultID = os1.str();
+               $$->type = $1->type;
+               $$->index = $1->index;
                delete $1;
                $$->code = os.str();
             }   
@@ -287,6 +322,8 @@ varline:    var {
                $$ = new varline_struct();
                ostringstream os;
                os << $1->code << $3->code;
+               $$->type = $1->type;
+               $$->index = $1->index;
                delete $1;
                delete $3;
                $$->code = os.str();
@@ -443,6 +480,7 @@ term1:      var{
                os << "= " << temp << ", " << $1->resultID;
                delete $1;
                $$->code = os.str();
+               $$->type = $1->type;
                $$->resultID = temp;
             }
             | number {
@@ -450,7 +488,7 @@ term1:      var{
                ostringstream os;
                string temp = createTemp();
                os << ". " << temp << endl;
-               os << "= " << temp << ", " << $1->resultID;
+               os << "= " << temp << ", " << $1->resultID << endl;
                delete $1;
                $$->code = os.str();
                $$->resultID = temp;
@@ -461,14 +499,19 @@ term1:      var{
 var:        identifier {
                $$ = new var_struct();
                ostringstream os;
-               os << $1->resultID;
+               os << $1->code;
                $$->code = os.str();
                ostringstream os1;
                os1 << $1->resultID;
                $$->resultID = os1.str();
+               $$->type = "ident";
             }
             | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {
-               
+               $$ = new var_struct();
+               $$->code = $3->code;
+               $$->resultID = $1->resultID;
+               $$->index = $3->resultID;
+               $$->type = "array";
             }
             ;
 
