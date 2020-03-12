@@ -268,13 +268,14 @@ statement:  var ASSIGN expression{
             | READ varline {
                $$ = new statement_struct();
                ostringstream os;
+               string tp = $2->type;
                if(tp == "array"){
                   string temp = createTemp();
                   os << ". " << temp << endl;
                   //possible temp declaration bug
                   os << ". " << $2->index << endl;
-                  os << "=[] " << temp << ", " << $2->resultID << ", " << $2->index << endl;
-                  os << ".> " << temp << endl;
+                  os << ".< " << temp << endl;
+                  os << "[]= " << $2->resultID << ", " << $2->index << ", " << temp << endl;
                }
                else
                   os << ".< " << $2->resultID<< endl;

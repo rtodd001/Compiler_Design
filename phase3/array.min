@@ -6,7 +6,7 @@ beginlocals
     n : integer;
 endlocals
 beginbody
-	read n;
-    a[0] := n;
+	read a[0];
+    ##a[0] := n;
 	write a[0];
 endbody
