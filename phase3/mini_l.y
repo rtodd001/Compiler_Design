@@ -348,6 +348,7 @@ statement:  var ASSIGN expression{
                string end_loop = createLabel();
                ostringstream os; 
                os << ": " << cond << endl;
+               os << ": " << createContinue(1) << endl;
                //condition check
                os << $2->code;
                os << "?:= " << start_loop << ", " << $2->resultID << endl;
@@ -372,6 +373,7 @@ statement:  var ASSIGN expression{
                string end_loop = createLabel();
                ostringstream os; 
                os << ": " << cond << endl;
+               os << ": " << createContinue(1) << endl;
                //condition check
                os << $6->code;
                os << "?:= " << start_loop << ", " << $6->resultID << endl;
