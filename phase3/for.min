@@ -7,11 +7,19 @@ beginlocals
 endlocals
 beginbody
 	read n;
-    f := 0;
+    f := 1000;
 	for i := 0 ; i < n; i:= i + 1
     beginloop
         a[i] := i;
         write a[i];
+        for j := 0 ; j < n; j:= j + 1
+        beginloop
+            b[i] := j;
+            write b[i];
+            continue;
+            c[i] := 5;
+            write c[i];
+        endloop;
         continue;
         f := 200;
     endloop;

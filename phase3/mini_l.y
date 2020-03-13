@@ -136,6 +136,7 @@
  int yylex();
  int tempCounter = 0;
  int labelCounter = 0;
+ int continueCounter = 0;
  string createTemp(){
     ostringstream os;
     os << "__temp__" << tempCounter++;
@@ -147,7 +148,10 @@
     return os.str();
  }
  string createContinue(int counter){
-    
+    ostringstream os;
+    os << "__continue__" << continueCounter;
+    continueCounter += counter;
+    return os.str();
  }
 %}
 
@@ -390,8 +394,8 @@ statement:  var ASSIGN expression{
                string cond = createLabel();
                string start_loop = createLabel();
                string end_loop = createLabel();
-               string contin = $12->name;
-               cout << "continue: " << contin << endl;
+               //string contin = $12->name;
+               //cout << "continue: " << contin << endl;
                ostringstream os;
                os << $2->code;
                os << ". " << $2->resultID << endl;
@@ -402,10 +406,9 @@ statement:  var ASSIGN expression{
                os << ":= " << end_loop << endl;
                //actual work done in loop
                os << ": " << start_loop << endl;
-               if(contin != "")
-                  os << ": " << contin << endl;
                os << $12->code;
                //increment counter
+               os << ": " << createContinue(1) << endl;
                os <<  $8->code;
                os <<  $10->code;
                string tp = $8->type;
@@ -454,7 +457,7 @@ statement:  var ASSIGN expression{
                }
             | CONTINUE         {
                $$= new statement_struct();
-               string cont = createLabel();
+               string cont = createContinue(0);
                ostringstream os;
                os << ":=  " << cont << endl;
                $$->resultID = cont;
@@ -508,8 +511,6 @@ statline:                                          {
                os << $3->code;
                $$->code = os.str();
                $$->resultID = $3->resultID;
-               cout << "stat 1: " << $1->resultID << endl;
-               cout << "stat 3: " << $3->resultID << endl;
                $$->name = $1->resultID;
                delete $1;
                delete $3;
