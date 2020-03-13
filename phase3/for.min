@@ -7,5 +7,9 @@ beginlocals
 endlocals
 beginbody
 	read n;
-	
+	for i := 0 ; i < n; i:= i + 1
+    beginloop
+        a[i] := i;
+        write a[i];
+    endloop;
 endbody

@@ -313,6 +313,9 @@ statement:  var ASSIGN expression{
                os << ": " << not_taken << endl;
                os << $5->code;
                os << ": " << ex << endl;
+               delete $2;
+               delete $4;
+               delete $5;
                $$->code = os.str();
             }
             | WHILE boolexp BEGINLOOP statline ENDLOOP         {
@@ -329,10 +332,48 @@ statement:  var ASSIGN expression{
                os << $4->code;
                os << ":= " << cond << endl;
                os << ": " << end_loop << endl;
+               delete $2;
+               delete $4;
                $$->code = os.str();
             }
             | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {printf("statement -> DO BEGINLOOP statline ENDLOOP WHILE boolexp\n");}
-            | FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP         {printf("statement -> FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP\n");}
+            | FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP         {
+               $$ = new statement_struct();
+               string cond = createLabel();
+               string start_loop = createLabel();
+               string end_loop = createLabel();
+               ostringstream os;
+               os << $2->code;
+               os << ". " << $2->resultID << endl;
+               os << "= " << $2->resultID << ", " << $4->resultID << endl;
+               os << ": " << cond << endl;
+               os << $6->code;
+               os << "?:= " << start_loop << ", " << $6->resultID << endl;
+               os << ":= " << end_loop << endl;
+               //actual work done in loop
+               os << ": " << start_loop << endl;
+               os << $12->code;
+               //increment counter
+               os <<  $8->code;
+               os <<  $10->code;
+               string tp = $8->type;
+               if(tp == "ident")
+                  os << "= " << $8->resultID;
+               else if(tp == "array")
+                  os << "[]= " << $8->name << ", " << $8->index;
+               os  << ", " << $10->resultID << endl;
+               //branch to recheck the loop condition
+               os << ":= " << cond << endl;
+               //exit the loop
+               os << ": " << end_loop << endl;
+               delete $2;
+               delete $4;
+               delete $6;
+               delete $8;
+               delete $10;
+               delete $12;
+               $$->code = os.str();
+               }
             | READ varline {
                $$ = new statement_struct();
                ostringstream os;
