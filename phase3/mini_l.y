@@ -60,39 +60,51 @@
     string resultID;
     string type;
     string name;
+    string index;
  };
  struct term1_struct {
     string code;
     string resultID;
     string type;
     string name;
+    string index;
  };
  struct expression_struct {
     string code;
     string resultID;
+    string type;
     string name;
+    string index;
  };
  struct exprhelper_struct{
     string code;
     string resultID;
     string operand;
     string op;
+    string index;
  };
  struct expresscomm_struct {
     string code;
+    string resultID;
+    string type;
     string name;
+    string index;
  };
  struct multiplicativeexp_struct {
     string code;
     string resultID;
     string name;
+    string type;
+    string index;
  };
  struct multiphelper_struct{
     string code;
     string resultID;
     string operand;
+    string type;
     string op;
     string name;
+    string index;
  };
  struct var_struct {
     string code;
@@ -292,7 +304,7 @@ statement:  var ASSIGN expression{
                if(tp == "ident")
                   os << "= " << $1->resultID;
                else if(tp == "array")
-                  os << "[]= " << $1->name << ", " << $1->index;
+                  os << "[]= " << $1->name << ", " << $1->resultID;
                os  << ", " << $3->resultID << endl;
                delete $1;
                delete $3;
@@ -325,18 +337,47 @@ statement:  var ASSIGN expression{
                string end_loop = createLabel();
                ostringstream os; 
                os << ": " << cond << endl;
+               //condition check
                os << $2->code;
                os << "?:= " << start_loop << ", " << $2->resultID << endl;
+               //not taken
                os << ":= " << end_loop << endl;
+               //taken
                os << ": " << start_loop << endl;
+               //actual work
                os << $4->code;
+               //condition recheck
                os << ":= " << cond << endl;
+               //exit loop
                os << ": " << end_loop << endl;
                delete $2;
                delete $4;
                $$->code = os.str();
             }
-            | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {printf("statement -> DO BEGINLOOP statline ENDLOOP WHILE boolexp\n");}
+            | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {
+               $$ = new statement_struct();
+               string cond = createLabel();
+               string start_loop = createLabel();
+               string end_loop = createLabel();
+               ostringstream os; 
+               os << ": " << cond << endl;
+               //condition check
+               os << $6->code;
+               os << "?:= " << start_loop << ", " << $6->resultID << endl;
+               //not taken
+               os << ":= " << end_loop << endl;
+               //taken
+               os << ": " << start_loop << endl;
+               //actual work
+               os << $3->code;
+               //condition recheck
+               os << ":= " << cond << endl;
+               //exit loop
+               os << ": " << end_loop << endl;
+               delete $3;
+               delete $6;
+               $$->code = os.str();
+            }
             | FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP         {
                $$ = new statement_struct();
                string cond = createLabel();
@@ -571,6 +612,8 @@ expression:     multiplicativeexp          {
                   os1 << $1->resultID;
                   delete $1;
                   $$->resultID = os1.str();
+                  $$->type = $1->type;
+                  $$->index = $1->index;
                }
                 | expression ADD multiplicativeexp {
                      $$ = new expression_struct();
@@ -584,6 +627,7 @@ expression:     multiplicativeexp          {
                      delete $3;
                      $$->resultID = temp2;
                      $$->code = os.str();
+                     $$->index = $1->index;
                   }
                 | expression SUB multiplicativeexp {
                      $$ = new expression_struct();
@@ -597,6 +641,7 @@ expression:     multiplicativeexp          {
                      delete $3;
                      $$->resultID = temp2;
                      $$->code = os.str();
+                     $$->index = $1->index;
                   }
                 ;
 
@@ -608,8 +653,10 @@ multiplicativeexp:  term {
                         $$->code = os.str();
                         ostringstream os1;
                         os1 << $1->resultID;
+                        $$->type = $1->type;
                         delete $1;
                         $$->resultID = os1.str();
+                        $$->index = $1->index;
                      }
                     | multiplicativeexp MULT term {
                         $$ = new multiplicativeexp_struct();
@@ -622,6 +669,7 @@ multiplicativeexp:  term {
                         os << "* " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
+                        $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
                     }
@@ -635,6 +683,7 @@ multiplicativeexp:  term {
                         os << "/ " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
+                        $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
                     }
@@ -648,6 +697,7 @@ multiplicativeexp:  term {
                         os << "% " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
+                        $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
                     }
@@ -659,10 +709,12 @@ term:       term1{
                      os << $1->code;
                      $$->name = $1->name;
                      $$->code = os.str();
+                     $$->type = $1->type;
                      ostringstream os1;
                      os1 << $1->resultID;
                      delete $1;
                      $$->resultID = os1.str();
+                     $$->index = $1->index;
             }
             | SUB term1         {printf("term -> SUB term1\n");}
             | identifier L_PAREN expresscomm R_PAREN         {printf("term -> identifier L_PAREN expresscomm R_PAREN\n");}
@@ -674,6 +726,7 @@ term1:      var{
                $$->type = $1->type;
                $$->name = $1->name;
                $$->resultID = $1->resultID;
+               $$->index = $1->index;
                delete $1;
             }
             | number {
@@ -682,7 +735,15 @@ term1:      var{
                $$->resultID = $1->resultID;
                delete $1;
             }
-            | L_PAREN expression R_PAREN         {printf("term1 -> L_PAREN expression R_PAREN\n");}
+            | L_PAREN expression R_PAREN         {
+               $$ = new term1_struct();
+               $$->code = $2->code;
+               $$->index = $2->index;
+               $$->type = $2->type;
+               $$->resultID = $2->resultID;
+               $$->name = $2->name;
+               delete $2;
+            }
             ;
 
 var:        identifier {
@@ -695,13 +756,22 @@ var:        identifier {
                $$->resultID = os1.str();
                $$->name = os1.str();
                $$->type = "ident";
+               //$$->index = $1->index;
             }
             | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {
                $$ = new var_struct();
                ostringstream os;
                os << $3->code;
-               //os << ". " << temp << endl;
-               //os << "=[] " << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
+               string tp = $3->type;
+               if(tp == "array"){
+                  string temp = createTemp();
+                  os << ". " << temp << endl;
+                  os << "=[] " << temp << ", " << $1->resultID << ", " << $3->index << endl;
+                  $$->resultID = temp;
+               }
+               else{
+                  $$->resultID = $1->resultID;
+               }
                //$$->code = $3->code;
                $$->name = $1->resultID;
                $$->index = $3->resultID;
@@ -710,8 +780,25 @@ var:        identifier {
             }
             ;
 
-expresscomm:    expression                 {printf("expresscomm -> expression\n");}
-                | expression COMMA expresscomm         {printf("expresscomm -> expression COMMA expresscomm\n");}
+expresscomm:    expression                 {
+                  $$ = new expresscomm_struct();
+                  $$->code = $1->code;
+                  $$->index = $1->index;
+                  $$->type = $1->type;
+                  $$->name = $1->name;
+                  delete $1;
+               }
+                | expression COMMA expresscomm         {
+                  $$ = new expresscomm_struct();
+                  ostringstream os;
+                  os << $1->code;
+                  os << $3->code;
+                  $$->code = $1->code;
+                  $$->index = $1->index;
+                  $$->type = $1->type;
+                  $$->name = $1->name;
+                  delete $1;
+                }
                 ;
 
 %%

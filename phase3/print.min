@@ -6,6 +6,6 @@ beginlocals
 endlocals
 beginbody
 	read n;
-	n := 5 - 4 + 6 / 2 % 3;
+	n := (5 - 4 + 6) / 2 % 3;
 	write n;
 endbody
