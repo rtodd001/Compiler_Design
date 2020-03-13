@@ -635,10 +635,10 @@ static const yytype_uint16 yyrline[] =
 {
        0,   194,   194,   195,   205,   219,   234,   242,   254,   263,
      266,   277,   286,   301,   318,   319,   320,   321,   334,   347,
-     348,   351,   352,   361,   374,   386,   389,   400,   406,   409,
-     415,   417,   418,   426,   435,   436,   437,   440,   444,   448,
-     452,   456,   460,   466,   477,   490,   505,   516,   530,   543,
-     558,   569,   570,   573,   581,   587,   590,   601,   615,   616
+     348,   351,   352,   361,   374,   386,   389,   400,   406,   419,
+     425,   437,   448,   456,   466,   470,   474,   482,   486,   490,
+     494,   498,   502,   508,   519,   532,   547,   558,   572,   585,
+     600,   611,   612,   615,   623,   629,   632,   643,   657,   658
 };
 #endif
 
@@ -1827,46 +1827,76 @@ yyreduce:
 
   case 28:
 #line 406 "mini_l.y" /* yacc.c:1646  */
-    {printf("boolexp -> relationandexpr OR boolexp\n");}
-#line 1832 "y.tab.c" /* yacc.c:1646  */
+    {
+                  (yyval.boolexp_val) = new boolexp_struct();
+                  ostringstream os; 
+                  os << (yyvsp[-2].relationandexpr_val)->code;
+                  os << (yyvsp[0].boolexp_val)->code;
+                  string temp = createTemp();
+                  os << ". " << temp << endl;
+                  os << "|| " << temp << ", " << (yyvsp[-2].relationandexpr_val)->resultID << ", " << (yyvsp[0].boolexp_val)->resultID << endl;
+                  (yyval.boolexp_val)->code = os.str();
+                  (yyval.boolexp_val)->resultID = temp;
+            }
+#line 1842 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 409 "mini_l.y" /* yacc.c:1646  */
+#line 419 "mini_l.y" /* yacc.c:1646  */
     {
                         (yyval.relationandexpr_val) = new relationandexpr_struct();
                         (yyval.relationandexpr_val)->code = (yyvsp[0].relationexpr_val)->code;
                         (yyval.relationandexpr_val)->resultID = (yyvsp[0].relationexpr_val)->resultID;
                         delete (yyvsp[0].relationexpr_val);
                      }
-#line 1843 "y.tab.c" /* yacc.c:1646  */
+#line 1853 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 415 "mini_l.y" /* yacc.c:1646  */
-    {printf("relationandexpr -> relationexpr AND relationandexpr\n");}
-#line 1849 "y.tab.c" /* yacc.c:1646  */
+#line 425 "mini_l.y" /* yacc.c:1646  */
+    {
+                        (yyval.relationandexpr_val) = new relationandexpr_struct();
+                        ostringstream os; 
+                        os << (yyvsp[-2].relationexpr_val)->code;
+                        os << (yyvsp[0].relationandexpr_val)->code;
+                        string temp = createTemp();
+                        os << ". " << temp << endl;
+                        os << "&& " << temp << ", " << (yyvsp[-2].relationexpr_val)->resultID << ", " << (yyvsp[0].relationandexpr_val)->resultID << endl;
+                        (yyval.relationandexpr_val)->code = os.str();
+                        (yyval.relationandexpr_val)->resultID = temp;
+                    }
+#line 1869 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 417 "mini_l.y" /* yacc.c:1646  */
-    {printf("relationexpr -> NOT relationhelper\n");}
-#line 1855 "y.tab.c" /* yacc.c:1646  */
+#line 437 "mini_l.y" /* yacc.c:1646  */
+    {
+                     (yyval.relationexpr_val) = new relationexpr_struct();
+                     string temp = createTemp();
+                     ostringstream os;
+                     os << (yyvsp[0].relationhelper_val)->code;
+                     os << ". " << temp << endl;
+                     os << "! " << temp << (yyvsp[0].relationhelper_val)->resultID << endl;
+                     delete (yyvsp[0].relationhelper_val);
+                     (yyval.relationexpr_val)->resultID = temp;
+                     (yyval.relationexpr_val)->code = os.str();
+                  }
+#line 1885 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 418 "mini_l.y" /* yacc.c:1646  */
+#line 448 "mini_l.y" /* yacc.c:1646  */
     {
                      (yyval.relationexpr_val) = new relationexpr_struct();
                      (yyval.relationexpr_val)->code = (yyvsp[0].relationhelper_val)->code;
                      (yyval.relationexpr_val)->resultID = (yyvsp[0].relationhelper_val)->resultID;
                      delete (yyvsp[0].relationhelper_val);
                 }
-#line 1866 "y.tab.c" /* yacc.c:1646  */
+#line 1896 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 426 "mini_l.y" /* yacc.c:1646  */
+#line 456 "mini_l.y" /* yacc.c:1646  */
     {
                      (yyval.relationhelper_val) = new relationhelper_struct();
                      string temp = createTemp();
@@ -1874,85 +1904,97 @@ yyreduce:
                      os << ". " << temp << endl;
                      os << (yyvsp[-1].comp_val)->resultID << temp << ", " << (yyvsp[-2].expression_val)->resultID << ", " << (yyvsp[0].expression_val)->resultID << endl;
                      (yyval.relationhelper_val)->code = os.str();
+                     delete (yyvsp[-1].comp_val);
                      (yyval.relationhelper_val)->resultID = temp;
                   }
-#line 1880 "y.tab.c" /* yacc.c:1646  */
+#line 1911 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 435 "mini_l.y" /* yacc.c:1646  */
-    {printf("relationhelper -> TRUE\n");}
-#line 1886 "y.tab.c" /* yacc.c:1646  */
+#line 466 "mini_l.y" /* yacc.c:1646  */
+    {
+                     (yyval.relationhelper_val) = new relationhelper_struct();
+                     (yyval.relationhelper_val)->resultID = "1";
+                  }
+#line 1920 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 436 "mini_l.y" /* yacc.c:1646  */
-    {printf("relationhelper -> FALSE\n");}
-#line 1892 "y.tab.c" /* yacc.c:1646  */
+#line 470 "mini_l.y" /* yacc.c:1646  */
+    {
+                     (yyval.relationhelper_val) = new relationhelper_struct();
+                     (yyval.relationhelper_val)->resultID = "0";
+                  }
+#line 1929 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 437 "mini_l.y" /* yacc.c:1646  */
-    {printf("relationhelper -> L_PAREN boolexp R_PAREN\n");}
-#line 1898 "y.tab.c" /* yacc.c:1646  */
+#line 474 "mini_l.y" /* yacc.c:1646  */
+    {
+                     (yyval.relationhelper_val) = new relationhelper_struct();
+                     (yyval.relationhelper_val)->resultID = (yyvsp[-1].boolexp_val)->resultID;
+                     (yyval.relationhelper_val)->code = (yyvsp[-1].boolexp_val)->code;
+                     delete (yyvsp[-1].boolexp_val);
+                  }
+#line 1940 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 440 "mini_l.y" /* yacc.c:1646  */
+#line 482 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = "== ";
             }
-#line 1907 "y.tab.c" /* yacc.c:1646  */
+#line 1949 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 444 "mini_l.y" /* yacc.c:1646  */
+#line 486 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = "!= ";
             }
-#line 1916 "y.tab.c" /* yacc.c:1646  */
+#line 1958 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 448 "mini_l.y" /* yacc.c:1646  */
+#line 490 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = "< ";
             }
-#line 1925 "y.tab.c" /* yacc.c:1646  */
+#line 1967 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 452 "mini_l.y" /* yacc.c:1646  */
+#line 494 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = "> ";
             }
-#line 1934 "y.tab.c" /* yacc.c:1646  */
+#line 1976 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 456 "mini_l.y" /* yacc.c:1646  */
+#line 498 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = "<= ";
             }
-#line 1943 "y.tab.c" /* yacc.c:1646  */
+#line 1985 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 460 "mini_l.y" /* yacc.c:1646  */
+#line 502 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.comp_val) = new comp_struct();
                (yyval.comp_val)->resultID = ">= ";
             }
-#line 1952 "y.tab.c" /* yacc.c:1646  */
+#line 1994 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 466 "mini_l.y" /* yacc.c:1646  */
+#line 508 "mini_l.y" /* yacc.c:1646  */
     {
                   (yyval.expression_val) = new expression_struct();
                   ostringstream os;
@@ -1964,11 +2006,11 @@ yyreduce:
                   delete (yyvsp[0].multiplicativeexp_val);
                   (yyval.expression_val)->resultID = os1.str();
                }
-#line 1968 "y.tab.c" /* yacc.c:1646  */
+#line 2010 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 477 "mini_l.y" /* yacc.c:1646  */
+#line 519 "mini_l.y" /* yacc.c:1646  */
     {
                      (yyval.expression_val) = new expression_struct();
                      ostringstream os;
@@ -1982,11 +2024,11 @@ yyreduce:
                      (yyval.expression_val)->resultID = temp2;
                      (yyval.expression_val)->code = os.str();
                   }
-#line 1986 "y.tab.c" /* yacc.c:1646  */
+#line 2028 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 490 "mini_l.y" /* yacc.c:1646  */
+#line 532 "mini_l.y" /* yacc.c:1646  */
     {
                      (yyval.expression_val) = new expression_struct();
                      ostringstream os;
@@ -2000,11 +2042,11 @@ yyreduce:
                      (yyval.expression_val)->resultID = temp2;
                      (yyval.expression_val)->code = os.str();
                   }
-#line 2004 "y.tab.c" /* yacc.c:1646  */
+#line 2046 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 505 "mini_l.y" /* yacc.c:1646  */
+#line 547 "mini_l.y" /* yacc.c:1646  */
     {
                         (yyval.multiplicativeexp_val) = new multiplicativeexp_struct();
                         ostringstream os;
@@ -2016,11 +2058,11 @@ yyreduce:
                         delete (yyvsp[0].term_val);
                         (yyval.multiplicativeexp_val)->resultID = os1.str();
                      }
-#line 2020 "y.tab.c" /* yacc.c:1646  */
+#line 2062 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 516 "mini_l.y" /* yacc.c:1646  */
+#line 558 "mini_l.y" /* yacc.c:1646  */
     {
                         (yyval.multiplicativeexp_val) = new multiplicativeexp_struct();
                         ostringstream os;
@@ -2035,11 +2077,11 @@ yyreduce:
                         (yyval.multiplicativeexp_val)->resultID = temp2;
                         (yyval.multiplicativeexp_val)->code = os.str();
                     }
-#line 2039 "y.tab.c" /* yacc.c:1646  */
+#line 2081 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 530 "mini_l.y" /* yacc.c:1646  */
+#line 572 "mini_l.y" /* yacc.c:1646  */
     {
                         (yyval.multiplicativeexp_val) = new multiplicativeexp_struct();
                         ostringstream os;
@@ -2053,11 +2095,11 @@ yyreduce:
                         (yyval.multiplicativeexp_val)->resultID = temp2;
                         (yyval.multiplicativeexp_val)->code = os.str();
                     }
-#line 2057 "y.tab.c" /* yacc.c:1646  */
+#line 2099 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 543 "mini_l.y" /* yacc.c:1646  */
+#line 585 "mini_l.y" /* yacc.c:1646  */
     {
                         (yyval.multiplicativeexp_val) = new multiplicativeexp_struct();
                         ostringstream os;
@@ -2071,11 +2113,11 @@ yyreduce:
                         (yyval.multiplicativeexp_val)->resultID = temp2;
                         (yyval.multiplicativeexp_val)->code = os.str();
                     }
-#line 2075 "y.tab.c" /* yacc.c:1646  */
+#line 2117 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 558 "mini_l.y" /* yacc.c:1646  */
+#line 600 "mini_l.y" /* yacc.c:1646  */
     {
                      (yyval.term_val) = new term_struct();
                      ostringstream os;
@@ -2087,23 +2129,23 @@ yyreduce:
                      delete (yyvsp[0].term1_val);
                      (yyval.term_val)->resultID = os1.str();
             }
-#line 2091 "y.tab.c" /* yacc.c:1646  */
+#line 2133 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 569 "mini_l.y" /* yacc.c:1646  */
+#line 611 "mini_l.y" /* yacc.c:1646  */
     {printf("term -> SUB term1\n");}
-#line 2097 "y.tab.c" /* yacc.c:1646  */
+#line 2139 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 570 "mini_l.y" /* yacc.c:1646  */
+#line 612 "mini_l.y" /* yacc.c:1646  */
     {printf("term -> identifier L_PAREN expresscomm R_PAREN\n");}
-#line 2103 "y.tab.c" /* yacc.c:1646  */
+#line 2145 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 573 "mini_l.y" /* yacc.c:1646  */
+#line 615 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.term1_val) = new term1_struct();
                (yyval.term1_val)->code = (yyvsp[0].var_val)->code;
@@ -2112,28 +2154,28 @@ yyreduce:
                (yyval.term1_val)->resultID = (yyvsp[0].var_val)->resultID;
                delete (yyvsp[0].var_val);
             }
-#line 2116 "y.tab.c" /* yacc.c:1646  */
+#line 2158 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 581 "mini_l.y" /* yacc.c:1646  */
+#line 623 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.term1_val) = new term1_struct();
                //$$->code = $1->code;
                (yyval.term1_val)->resultID = (yyvsp[0].number_val)->resultID;
                delete (yyvsp[0].number_val);
             }
-#line 2127 "y.tab.c" /* yacc.c:1646  */
+#line 2169 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 587 "mini_l.y" /* yacc.c:1646  */
+#line 629 "mini_l.y" /* yacc.c:1646  */
     {printf("term1 -> L_PAREN expression R_PAREN\n");}
-#line 2133 "y.tab.c" /* yacc.c:1646  */
+#line 2175 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 590 "mini_l.y" /* yacc.c:1646  */
+#line 632 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.var_val) = new var_struct();
                ostringstream os;
@@ -2145,11 +2187,11 @@ yyreduce:
                (yyval.var_val)->name = os1.str();
                (yyval.var_val)->type = "ident";
             }
-#line 2149 "y.tab.c" /* yacc.c:1646  */
+#line 2191 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 601 "mini_l.y" /* yacc.c:1646  */
+#line 643 "mini_l.y" /* yacc.c:1646  */
     {
                (yyval.var_val) = new var_struct();
                ostringstream os;
@@ -2162,23 +2204,23 @@ yyreduce:
                (yyval.var_val)->type = "array";
                (yyval.var_val)->code = os.str();
             }
-#line 2166 "y.tab.c" /* yacc.c:1646  */
+#line 2208 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 615 "mini_l.y" /* yacc.c:1646  */
+#line 657 "mini_l.y" /* yacc.c:1646  */
     {printf("expresscomm -> expression\n");}
-#line 2172 "y.tab.c" /* yacc.c:1646  */
+#line 2214 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 616 "mini_l.y" /* yacc.c:1646  */
+#line 658 "mini_l.y" /* yacc.c:1646  */
     {printf("expresscomm -> expression COMMA expresscomm\n");}
-#line 2178 "y.tab.c" /* yacc.c:1646  */
+#line 2220 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2182 "y.tab.c" /* yacc.c:1646  */
+#line 2224 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2406,7 +2448,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 619 "mini_l.y" /* yacc.c:1906  */
+#line 661 "mini_l.y" /* yacc.c:1906  */
 
 
 int main(int argc, char **argv) {

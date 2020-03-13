@@ -403,7 +403,17 @@ boolexp:    relationandexpr         {
                $$->resultID = $1->resultID;
                delete $1;
             }
-            | relationandexpr OR boolexp         {printf("boolexp -> relationandexpr OR boolexp\n");}
+            | relationandexpr OR boolexp         {
+                  $$ = new boolexp_struct();
+                  ostringstream os; 
+                  os << $1->code;
+                  os << $3->code;
+                  string temp = createTemp();
+                  os << ". " << temp << endl;
+                  os << "|| " << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
+                  $$->code = os.str();
+                  $$->resultID = temp;
+            }
             ;
 
 relationandexpr:    relationexpr         {
@@ -413,14 +423,28 @@ relationandexpr:    relationexpr         {
                         delete $1;
                      }
                     | relationexpr AND relationandexpr         {
-                       $$ = new relationandexpr_struct();
-                       ostringstream os; 
-                       os << $1->code;
-                       
-                       os << $2->code;
+                        $$ = new relationandexpr_struct();
+                        ostringstream os; 
+                        os << $1->code;
+                        os << $3->code;
+                        string temp = createTemp();
+                        os << ". " << temp << endl;
+                        os << "&& " << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
+                        $$->code = os.str();
+                        $$->resultID = temp;
                     }
                     ;
-relationexpr:   NOT relationhelper         {printf("relationexpr -> NOT relationhelper\n");}
+relationexpr:   NOT relationhelper         {
+                     $$ = new relationexpr_struct();
+                     string temp = createTemp();
+                     ostringstream os;
+                     os << $2->code;
+                     os << ". " << temp << endl;
+                     os << "! " << temp << $2->resultID << endl;
+                     delete $2;
+                     $$->resultID = temp;
+                     $$->code = os.str();
+                  }
                 | relationhelper         {
                      $$ = new relationexpr_struct();
                      $$->code = $1->code;
@@ -436,11 +460,23 @@ relationhelper:    expression comp expression         {
                      os << ". " << temp << endl;
                      os << $2->resultID << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
                      $$->code = os.str();
+                     delete $2;
                      $$->resultID = temp;
                   }
-                  | TRUE         {printf("relationhelper -> TRUE\n");}
-                  | FALSE         {printf("relationhelper -> FALSE\n");}
-                  | L_PAREN boolexp R_PAREN         {printf("relationhelper -> L_PAREN boolexp R_PAREN\n");}
+                  | TRUE         {
+                     $$ = new relationhelper_struct();
+                     $$->resultID = "1";
+                  }
+                  | FALSE         {
+                     $$ = new relationhelper_struct();
+                     $$->resultID = "0";
+                  }
+                  | L_PAREN boolexp R_PAREN         {
+                     $$ = new relationhelper_struct();
+                     $$->resultID = $2->resultID;
+                     $$->code = $2->code;
+                     delete $2;
+                  }
                   ;
 
 comp:       EQ {

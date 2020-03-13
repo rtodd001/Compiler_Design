@@ -3,10 +3,12 @@ beginparams
 endparams
 beginlocals
 	a , b, c : array[1] of integer;
+	n : integer;
 endlocals
 beginbody
 	read a[0];
-	b[0] := 6;
-	write a[0];
-	write b[0];
+	n := 0;
+	b[n] := 20;
+	write a[0], b[0];
+	##write b[0];
 endbody
