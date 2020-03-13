@@ -2,11 +2,14 @@ function main;
 beginparams
 endparams
 beginlocals
-	a : array[1] of integer;
+	a , b, c : array[1] of integer;
+	##b : array[1] of integer;
     n : integer;
 endlocals
 beginbody
 	read a[0];
+	b[a[0]] := 6;
     ##a[0] := n;
 	write a[0];
+	write b[0];
 endbody

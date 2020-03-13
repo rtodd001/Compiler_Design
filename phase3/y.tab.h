@@ -102,7 +102,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 116 "mini_l.y" /* yacc.c:1909  */
+#line 127 "mini_l.y" /* yacc.c:1909  */
 
   int ival;
   char* sval;
@@ -113,7 +113,7 @@ union YYSTYPE
   struct statline_struct *statline_val;
   struct declaration_struct *declaration_val;
   struct decline_struct *decline_val;
-  struct boolexp_struct *boolexp_struct_val;
+  struct boolexp_struct *boolexp_val;
   struct relationandexpr_struct *relationandexpr_val;
   struct relationexpr_struct *relationexpr_val;
   struct relationhelper_struct *relationhelper_val;

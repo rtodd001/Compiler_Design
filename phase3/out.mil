@@ -1,13 +1,10 @@
 func main
-. a
 .[] a, 1
+.[] b, 1
+.[] c, 1
 . n
-. __temp__1
-. __temp__0
-.< __temp__1
-[]= a, __temp__0, __temp__1
-. __temp__3
-. __temp__2
-=[] __temp__3, a, __temp__2
-.> __temp__3
+.[]< a, 0
+[]= b, a, 6
+.[]> a, 0
+.[]> b, 0
 endfunc

@@ -4,6 +4,7 @@
  #include <vector>
  #include <iostream>
  #include <string>
+ #include <queue>
  #include <sstream>
  using namespace std;
  void yyerror(const char *msg);
@@ -27,9 +28,12 @@
  };
  struct declaration_struct {
     string code;
+    string type;
+    string resultID;
  };
  struct decline_struct {
     string code;
+    string type;
  };
  struct boolexp_struct {
     string code;
@@ -49,6 +53,7 @@
  };
  struct comp_struct {
     string code;
+    string resultID;
  };
  struct term_struct {
     string code;
@@ -106,9 +111,15 @@
  extern FILE * yyin;
  int yylex();
  int tempCounter = 0;
+ int labelCounter = 0;
  string createTemp(){
     ostringstream os;
     os << "__temp__" << tempCounter++;
+    return os.str();
+ }
+ string createLabel(){
+    ostringstream os;
+    os << "__label__" << labelCounter++;
     return os.str();
  }
 %}
@@ -123,7 +134,7 @@
   struct statline_struct *statline_val;
   struct declaration_struct *declaration_val;
   struct decline_struct *decline_val;
-  struct boolexp_struct *boolexp_struct_val;
+  struct boolexp_struct *boolexp_val;
   struct relationandexpr_struct *relationandexpr_val;
   struct relationexpr_struct *relationexpr_val;
   struct relationhelper_struct *relationhelper_val;
@@ -197,19 +208,37 @@ function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS decline END_PARAMS BEGIN_
             }
                ;
 
-declaration:    identifier COMMA declaration         {printf("declaration -> identifier COMMA declaration\n");}
+declaration:      identifier COMMA declaration         {
+                     $$ = new declaration_struct();
+                     ostringstream os;
+                     string tp = $3->type;
+                     $$->type = tp;
+                     $$->resultID = $3->resultID;
+                     if(tp == "array"){
+                        os << ".[] " << $1->resultID << ", " << $3->resultID << endl;
+                     }
+                     else if (tp == "ident"){
+                        os << ". " << $1->code << endl;
+                     }
+                     os << $3->code;
+                     $$->code = os.str();
+                  }
                 | identifier COLON INTEGER {  
                   ostringstream os;
                   $$ = new declaration_struct();
                   os << ". " << $1->code << endl;
+                  $$->type = "ident";
                   delete $1;
                   $$->code = os.str();
                }
                 | identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER {
                    $$ = new declaration_struct();
                    ostringstream os;
-                   os << ". " << $1->code << endl;
+                   $$->type = "array";
                    os << ".[] " << $1->resultID << ", " << $5->resultID << endl;
+                   $$->resultID = $5->resultID;
+                   //os << ". " << $1->code << endl;
+                  
                    $$->code = os.str();
                 }
                ;
@@ -249,8 +278,8 @@ identifier:    IDENT   {
 statement:  var ASSIGN expression{  
                $$ = new statement_struct();
                ostringstream os;
-               os <<  $1->code;
-               os <<  $3->code << endl;
+               //os <<  $1->code;
+               //os <<  $3->code << endl;
                string tp = $1->type;
                if(tp == "ident")
                   os << "= " << $1->resultID;
@@ -261,7 +290,13 @@ statement:  var ASSIGN expression{
                delete $3;
                $$->code = os.str();
             }
-            | IF boolexp THEN statline stathelp ENDIF         {printf("statement -> IF boolexp THEN statline stathelp ENDIF\n");}
+            | IF boolexp THEN statline stathelp ENDIF {
+               $$ = new statement_struct();
+               string taken = createLabel();
+               string not_taken = createLabel();
+               ostringstream os;
+               
+            }
             | WHILE boolexp BEGINLOOP statline ENDLOOP         {printf("statement -> WHILE boolexp BEGINLOOP statline ENDLOOP\n");}
             | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {printf("statement -> DO BEGINLOOP statline ENDLOOP WHILE boolexp\n");}
             | FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP         {printf("statement -> FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP\n");}
@@ -270,12 +305,7 @@ statement:  var ASSIGN expression{
                ostringstream os;
                string tp = $2->type;
                if(tp == "array"){
-                  string temp = createTemp();
-                  os << ". " << temp << endl;
-                  //possible temp declaration bug
-                  os << ". " << $2->index << endl;
-                  os << ".< " << temp << endl;
-                  os << "[]= " << $2->resultID << ", " << $2->index << ", " << temp << endl;
+                  os << ".[]< " << $2->resultID << ", " << $2->index << endl;
                }
                else
                   os << ".< " << $2->resultID<< endl;
@@ -287,12 +317,7 @@ statement:  var ASSIGN expression{
                ostringstream os;
                string tp = $2->type;
                if(tp == "array"){
-                  string temp = createTemp();
-                  os << ". " << temp << endl;
-                  //possible temp declaration bug
-                  os << ". " << $2->index << endl;
-                  os << "=[] " << temp << ", " << $2->resultID << ", " << $2->index << endl;
-                  os << ".> " << temp << endl;
+                  os << ".[]> " << $2->resultID << ", " << $2->index << endl;
                }
                else
                   os << ".> " << $2->resultID<< endl;
@@ -345,24 +370,45 @@ statline:                                          {
             }
             ;
 
-boolexp:    relationandexpr         {printf("boolexp -> relationandexpr\n");}
+boolexp:    relationandexpr         {
+               $$ = new boolexp_struct();
+               $$->code = $1->code;
+               $$->resultID = $1->resultID;
+               delete $1;
+            }
             | relationandexpr OR boolexp         {printf("boolexp -> relationandexpr OR boolexp\n");}
             ;
 
-relationandexpr:    relationexpr         {printf("relationandexpr -> relationexpr\n");}
+relationandexpr:    relationexpr         {
+                        $$ = new relationandexpr_struct();
+                        $$->code = $1->code;
+                        $$->resultID = $1->resultID;
+                        delete $1;
+                     }
                     | relationexpr AND relationandexpr         {printf("relationandexpr -> relationexpr OR relationandexpr\n");}
                     ;
 relationexpr:   NOT relationhelper         {printf("relationexpr -> NOT relationhelper\n");}
-                | relationhelper         {printf("relationexpr -> relationhelper\n");}
+                | relationhelper         {
+                     $$ = new relationexpr_struct();
+                     $$->code = $1->code;
+                     $$->resultID = $1->resultID;
+                     delete $1;
+                }
                 ;
 
-relationhelper:    expression comp expression         {printf("relationhelper -> expression comp expression\n");}
+relationhelper:    expression comp expression         {
+                     $$ = new relationhelper_struct();
+
+                  }
                   | TRUE         {printf("relationhelper -> TRUE\n");}
                   | FALSE         {printf("relationhelper -> FALSE\n");}
                   | L_PAREN boolexp R_PAREN         {printf("relationhelper -> L_PAREN boolexp R_PAREN\n");}
                   ;
 
-comp:       EQ         {printf("comp -> EQ\n");}
+comp:       EQ {
+               $$ = new comp_struct();
+               $$->resultID = "==";
+            }
             | NEQ         {printf("comp -> NEQ\n");}
             | LT         {printf("comp -> LT\n");}
             | GT         {printf("comp -> GT\n");}
@@ -475,24 +521,16 @@ term:       term1{
 
 term1:      var{
                $$ = new term1_struct();
-               string temp = createTemp();
-               ostringstream os;
-               os << ". " << temp << endl;
-               os << "= " << temp << ", " << $1->resultID;
-               delete $1;
-               $$->code = os.str();
+               $$->code = $1->code;
                $$->type = $1->type;
-               $$->resultID = temp;
+               $$->resultID = $1->resultID;
+               delete $1;
             }
             | number {
                $$ = new term1_struct();
-               ostringstream os;
-               string temp = createTemp();
-               os << ". " << temp << endl;
-               os << "= " << temp << ", " << $1->resultID << endl;
+               $$->code = $1->code;
+               $$->resultID = $1->resultID;
                delete $1;
-               $$->code = os.str();
-               $$->resultID = temp;
             }
             | L_PAREN expression R_PAREN         {printf("term1 -> L_PAREN expression R_PAREN\n");}
             ;
