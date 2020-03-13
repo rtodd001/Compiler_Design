@@ -19,12 +19,16 @@
  };
  struct statement_struct {
     string code;
+    string resultID;
+    string name;
  };
  struct stathelp_struct {
     string code;
  };
  struct statline_struct {
     string code;
+    string resultID;
+    string name;
  };
  struct declaration_struct {
     string code;
@@ -141,6 +145,9 @@
     ostringstream os;
     os << "__label__" << labelCounter++;
     return os.str();
+ }
+ string createContinue(int counter){
+    
  }
 %}
 
@@ -383,6 +390,8 @@ statement:  var ASSIGN expression{
                string cond = createLabel();
                string start_loop = createLabel();
                string end_loop = createLabel();
+               string contin = $12->name;
+               cout << "continue: " << contin << endl;
                ostringstream os;
                os << $2->code;
                os << ". " << $2->resultID << endl;
@@ -393,6 +402,8 @@ statement:  var ASSIGN expression{
                os << ":= " << end_loop << endl;
                //actual work done in loop
                os << ": " << start_loop << endl;
+               if(contin != "")
+                  os << ": " << contin << endl;
                os << $12->code;
                //increment counter
                os <<  $8->code;
@@ -441,7 +452,14 @@ statement:  var ASSIGN expression{
                $$->code = os.str();
                delete $2;
                }
-            | CONTINUE         {printf("statement -> CONTINUE\n");}
+            | CONTINUE         {
+               $$= new statement_struct();
+               string cont = createLabel();
+               ostringstream os;
+               os << ":=  " << cont << endl;
+               $$->resultID = cont;
+               $$->code = os.str();
+            }
             | RETURN expression         {printf("statement -> RETURN expression\n");}
             ;
             
@@ -488,9 +506,13 @@ statline:                                          {
                ostringstream os;
                os << $1->code;
                os << $3->code;
+               $$->code = os.str();
+               $$->resultID = $3->resultID;
+               cout << "stat 1: " << $1->resultID << endl;
+               cout << "stat 3: " << $3->resultID << endl;
+               $$->name = $1->resultID;
                delete $1;
                delete $3;
-               $$->code = os.str();
             }
             ;
 
@@ -770,7 +792,7 @@ var:        identifier {
                   $$->resultID = temp;
                }
                else{
-                  $$->resultID = $1->resultID;
+                  $$->resultID = $3->resultID;
                }
                //$$->code = $3->code;
                $$->name = $1->resultID;
