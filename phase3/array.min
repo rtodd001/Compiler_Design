@@ -10,5 +10,5 @@ beginbody
 	n := 0;
 	b[n] := 20;
 	write a[0], b[0];
-	##write b[0];
+	write b[0];
 endbody

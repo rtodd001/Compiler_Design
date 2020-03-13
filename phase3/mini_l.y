@@ -245,7 +245,7 @@ declaration:      identifier COMMA declaration         {
                    $$->type = "array";
                    os << ".[] " << $1->resultID << ", " << $5->resultID << endl;
                    $$->resultID = $5->resultID;
-                   //os << ". " << $1->code << endl;
+                   //os << ". " << $1->code;
                   
                    $$->code = os.str();
                 }
@@ -315,7 +315,22 @@ statement:  var ASSIGN expression{
                os << ": " << ex << endl;
                $$->code = os.str();
             }
-            | WHILE boolexp BEGINLOOP statline ENDLOOP         {printf("statement -> WHILE boolexp BEGINLOOP statline ENDLOOP\n");}
+            | WHILE boolexp BEGINLOOP statline ENDLOOP         {
+               $$ = new statement_struct();
+               string cond = createLabel();
+               string start_loop = createLabel();
+               string end_loop = createLabel();
+               ostringstream os; 
+               os << ": " << cond << endl;
+               os << $2->code;
+               os << "?:= " << start_loop << ", " << $2->resultID << endl;
+               os << ":= " << end_loop << endl;
+               os << ": " << start_loop << endl;
+               os << $4->code;
+               os << ":= " << cond << endl;
+               os << ": " << end_loop << endl;
+               $$->code = os.str();
+            }
             | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {printf("statement -> DO BEGINLOOP statline ENDLOOP WHILE boolexp\n");}
             | FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP         {printf("statement -> FOR var ASSIGN number SEMICOLON boolexp SEMICOLON var ASSIGN expression BEGINLOOP statline ENDLOOP\n");}
             | READ varline {
@@ -520,10 +535,10 @@ expression:     multiplicativeexp          {
                      $$ = new expression_struct();
                      ostringstream os;
                      string temp2 = createTemp();
-                     os << $1->code << endl;
-                     os << $3->code << endl;
+                     os << $1->code;
+                     os << $3->code;
                      os << ". " << temp2 << endl;
-                     os << "+ " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                     os << "+ " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                      delete $1;
                      delete $3;
                      $$->resultID = temp2;
@@ -533,10 +548,10 @@ expression:     multiplicativeexp          {
                      $$ = new expression_struct();
                      ostringstream os;
                      string temp2 = createTemp();
-                     os << $1->code << endl;
-                     os << $3->code << endl;
+                     os << $1->code;
+                     os << $3->code;
                      os << ". " << temp2 << endl;
-                     os << "- " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                     os << "- " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                      delete $1;
                      delete $3;
                      $$->resultID = temp2;
@@ -560,10 +575,10 @@ multiplicativeexp:  term {
                         ostringstream os;
                         string temp2 = createTemp();
                         //possible newline issue
-                        os << $1->code << endl;
-                        os << $3->code << endl;
+                        os << $1->code;
+                        os << $3->code;
                         os << ". " << temp2 << endl;
-                        os << "* " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                        os << "* " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
                         $$->resultID = temp2;
@@ -573,10 +588,10 @@ multiplicativeexp:  term {
                         $$ = new multiplicativeexp_struct();
                         ostringstream os;
                         string temp2 = createTemp();
-                        os << $1->code << endl;
-                        os << $3->code << endl;
+                        os << $1->code;
+                        os << $3->code;
                         os << ". " << temp2 << endl;
-                        os << "/ " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                        os << "/ " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
                         $$->resultID = temp2;
@@ -586,10 +601,10 @@ multiplicativeexp:  term {
                         $$ = new multiplicativeexp_struct();
                         ostringstream os;
                         string temp2 = createTemp();
-                        os << $1->code << endl;
-                        os << $3->code << endl;
+                        os << $1->code;
+                        os << $3->code;
                         os << ". " << temp2 << endl;
-                        os << "% " << temp2 << ", " << $1->resultID << ", " << $3->resultID;
+                        os << "% " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
                         delete $1;
                         delete $3;
                         $$->resultID = temp2;

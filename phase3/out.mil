@@ -1,27 +1,20 @@
 func main
+.[] a, 10
+. i
 . n
-. b
-. c
 .< n
-= b, 20
-= c, 15
-. __temp__0
-== __temp__0, n, 6
-?:= __label__3, __temp__0
-:= __label__4
-: __label__3
-. __temp__1
-== __temp__1, b, 20
-?:= __label__0, __temp__1
-:= __label__1
+= i, 0
 : __label__0
-.> b
+. __temp__0
+< __temp__0, i, n
+?:= __label__1, __temp__0
 := __label__2
 : __label__1
+[]= a, i, i
+.[]> a, i
+. __temp__1
++ __temp__1, i, 1
+= i, __temp__1
+:= __label__0
 : __label__2
-.> n
-:= __label__5
-: __label__4
-.> c
-: __label__5
 endfunc
