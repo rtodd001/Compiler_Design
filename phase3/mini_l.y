@@ -59,15 +59,18 @@
     string code;
     string resultID;
     string type;
+    string name;
  };
  struct term1_struct {
     string code;
     string resultID;
     string type;
+    string name;
  };
  struct expression_struct {
     string code;
     string resultID;
+    string name;
  };
  struct exprhelper_struct{
     string code;
@@ -77,19 +80,23 @@
  };
  struct expresscomm_struct {
     string code;
+    string name;
  };
  struct multiplicativeexp_struct {
     string code;
     string resultID;
+    string name;
  };
  struct multiphelper_struct{
     string code;
     string resultID;
     string operand;
     string op;
+    string name;
  };
  struct var_struct {
     string code;
+    string name;
     string resultID;
     string type;
     string index;
@@ -99,6 +106,7 @@
     string resultID;
     string type;
     string index;
+    string name;
  };
  struct number_struct {
     string code;
@@ -197,7 +205,7 @@ program:	                         {$$ = new program_struct();}
 function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS decline END_PARAMS BEGIN_LOCALS decline END_LOCALS BEGIN_BODY statline END_BODY{  
                ostringstream os;
                $$ = new function_struct();
-               os << "func " << $2->code<<endl;
+               os << "func " << $2->resultID<<endl;
                os << $5->code << $8->code;
                os << $11->code << "endfunc\n";
                delete $2;
@@ -218,7 +226,7 @@ declaration:      identifier COMMA declaration         {
                         os << ".[] " << $1->resultID << ", " << $3->resultID << endl;
                      }
                      else if (tp == "ident"){
-                        os << ". " << $1->code << endl;
+                        os << ". " << $1->resultID << endl;
                      }
                      os << $3->code;
                      $$->code = os.str();
@@ -226,7 +234,7 @@ declaration:      identifier COMMA declaration         {
                 | identifier COLON INTEGER {  
                   ostringstream os;
                   $$ = new declaration_struct();
-                  os << ". " << $1->code << endl;
+                  os << ". " << $1->resultID << endl;
                   $$->type = "ident";
                   delete $1;
                   $$->code = os.str();
@@ -270,7 +278,7 @@ identifier:    IDENT   {
                   $$ = new identifier_struct;
                   ostringstream os; 
                   os << $1;
-                  $$->code = os.str();
+                  //$$->code = os.str();
                   $$->resultID = os.str();
                }               
             ;
@@ -278,13 +286,13 @@ identifier:    IDENT   {
 statement:  var ASSIGN expression{  
                $$ = new statement_struct();
                ostringstream os;
-               //os <<  $1->code;
-               //os <<  $3->code << endl;
+               os <<  $1->code;
+               os <<  $3->code;
                string tp = $1->type;
                if(tp == "ident")
                   os << "= " << $1->resultID;
                else if(tp == "array")
-                  os << "[]= " << $1->resultID << ", " << $1->index;
+                  os << "[]= " << $1->name << ", " << $1->index;
                os  << ", " << $3->resultID << endl;
                delete $1;
                delete $3;
@@ -294,8 +302,18 @@ statement:  var ASSIGN expression{
                $$ = new statement_struct();
                string taken = createLabel();
                string not_taken = createLabel();
+               string ex = createLabel();
                ostringstream os;
-               
+               os << $2->code;
+               os << "?:= " << taken << ", " << $2->resultID << endl;
+               os << ":= " << not_taken << endl;
+               os << ": " << taken << endl;
+               os << $4->code;
+               os << ":= " << ex << endl;
+               os << ": " << not_taken << endl;
+               os << $5->code;
+               os << ": " << ex << endl;
+               $$->code = os.str();
             }
             | WHILE boolexp BEGINLOOP statline ENDLOOP         {printf("statement -> WHILE boolexp BEGINLOOP statline ENDLOOP\n");}
             | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {printf("statement -> DO BEGINLOOP statline ENDLOOP WHILE boolexp\n");}
@@ -303,9 +321,10 @@ statement:  var ASSIGN expression{
             | READ varline {
                $$ = new statement_struct();
                ostringstream os;
+               os << $2->code;
                string tp = $2->type;
                if(tp == "array"){
-                  os << ".[]< " << $2->resultID << ", " << $2->index << endl;
+                  os << ".[]< " << $2->name << ", " << $2->index << endl;
                }
                else
                   os << ".< " << $2->resultID<< endl;
@@ -315,12 +334,13 @@ statement:  var ASSIGN expression{
             | WRITE varline {
                $$ = new statement_struct();
                ostringstream os;
+               os << $2->code;
                string tp = $2->type;
                if(tp == "array"){
-                  os << ".[]> " << $2->resultID << ", " << $2->index << endl;
+                  os << ".[]> " << $2->name << ", " << $2->index << endl;
                }
                else
-                  os << ".> " << $2->resultID<< endl;
+                  os << ".> " << $2->name << endl;
                $$->code = os.str();
                delete $2;
                }
@@ -328,8 +348,14 @@ statement:  var ASSIGN expression{
             | RETURN expression         {printf("statement -> RETURN expression\n");}
             ;
             
-stathelp:   
-            | ELSE statline         {printf("stathelp -> ELSE statline\n");}
+stathelp:            {$$ =new stathelp_struct(); }
+            | ELSE statline         {
+               $$ = new stathelp_struct();
+               ostringstream os;
+               os << $2->code;
+               delete $2;
+               $$->code = os.str();
+            }
             ;
 
 varline:    var {
@@ -340,6 +366,7 @@ varline:    var {
                os1 << $1->resultID;
                $$->resultID = os1.str();
                $$->type = $1->type;
+               $$->name = $1->name;
                $$->index = $1->index;
                delete $1;
                $$->code = os.str();
@@ -385,7 +412,13 @@ relationandexpr:    relationexpr         {
                         $$->resultID = $1->resultID;
                         delete $1;
                      }
-                    | relationexpr AND relationandexpr         {printf("relationandexpr -> relationexpr OR relationandexpr\n");}
+                    | relationexpr AND relationandexpr         {
+                       $$ = new relationandexpr_struct();
+                       ostringstream os; 
+                       os << $1->code;
+                       
+                       os << $2->code;
+                    }
                     ;
 relationexpr:   NOT relationhelper         {printf("relationexpr -> NOT relationhelper\n");}
                 | relationhelper         {
@@ -398,7 +431,12 @@ relationexpr:   NOT relationhelper         {printf("relationexpr -> NOT relation
 
 relationhelper:    expression comp expression         {
                      $$ = new relationhelper_struct();
-
+                     string temp = createTemp();
+                     ostringstream os;
+                     os << ". " << temp << endl;
+                     os << $2->resultID << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
+                     $$->code = os.str();
+                     $$->resultID = temp;
                   }
                   | TRUE         {printf("relationhelper -> TRUE\n");}
                   | FALSE         {printf("relationhelper -> FALSE\n");}
@@ -407,13 +445,28 @@ relationhelper:    expression comp expression         {
 
 comp:       EQ {
                $$ = new comp_struct();
-               $$->resultID = "==";
+               $$->resultID = "== ";
             }
-            | NEQ         {printf("comp -> NEQ\n");}
-            | LT         {printf("comp -> LT\n");}
-            | GT         {printf("comp -> GT\n");}
-            | LTE         {printf("comp -> LTE\n");}
-            | GTE         {printf("comp -> GTE\n");}
+            | NEQ         {
+               $$ = new comp_struct();
+               $$->resultID = "!= ";
+            }
+            | LT         {
+               $$ = new comp_struct();
+               $$->resultID = "< ";
+            }
+            | GT         {
+               $$ = new comp_struct();
+               $$->resultID = "> ";
+            }
+            | LTE         {
+               $$ = new comp_struct();
+               $$->resultID = "<= ";
+            }
+            | GTE         {
+               $$ = new comp_struct();
+               $$->resultID = ">= ";
+            }
             ;
 
 expression:     multiplicativeexp          {
@@ -422,6 +475,7 @@ expression:     multiplicativeexp          {
                   os << $1->code;
                   $$->code = os.str();
                   ostringstream os1;
+                  $$->name = $1->name;
                   os1 << $1->resultID;
                   delete $1;
                   $$->resultID = os1.str();
@@ -458,6 +512,7 @@ multiplicativeexp:  term {
                         $$ = new multiplicativeexp_struct();
                         ostringstream os;
                         os << $1->code;
+                        $$->name = $1->name;
                         $$->code = os.str();
                         ostringstream os1;
                         os1 << $1->resultID;
@@ -468,6 +523,7 @@ multiplicativeexp:  term {
                         $$ = new multiplicativeexp_struct();
                         ostringstream os;
                         string temp2 = createTemp();
+                        //possible newline issue
                         os << $1->code << endl;
                         os << $3->code << endl;
                         os << ". " << temp2 << endl;
@@ -509,6 +565,7 @@ term:       term1{
                      $$ = new term_struct();
                      ostringstream os;
                      os << $1->code;
+                     $$->name = $1->name;
                      $$->code = os.str();
                      ostringstream os1;
                      os1 << $1->resultID;
@@ -523,12 +580,13 @@ term1:      var{
                $$ = new term1_struct();
                $$->code = $1->code;
                $$->type = $1->type;
+               $$->name = $1->name;
                $$->resultID = $1->resultID;
                delete $1;
             }
             | number {
                $$ = new term1_struct();
-               $$->code = $1->code;
+               //$$->code = $1->code;
                $$->resultID = $1->resultID;
                delete $1;
             }
@@ -539,18 +597,24 @@ var:        identifier {
                $$ = new var_struct();
                ostringstream os;
                os << $1->code;
-               $$->code = os.str();
+               //$$->code = os.str();
                ostringstream os1;
                os1 << $1->resultID;
                $$->resultID = os1.str();
+               $$->name = os1.str();
                $$->type = "ident";
             }
             | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {
                $$ = new var_struct();
-               $$->code = $3->code;
-               $$->resultID = $1->resultID;
+               ostringstream os;
+               os << $3->code;
+               //os << ". " << temp << endl;
+               //os << "=[] " << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
+               //$$->code = $3->code;
+               $$->name = $1->resultID;
                $$->index = $3->resultID;
                $$->type = "array";
+               $$->code = os.str();
             }
             ;
 

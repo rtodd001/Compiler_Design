@@ -1,10 +1,17 @@
+relationandexpr -> relationexpr OR relationandexpr
 func main
-.[] a, 1
-.[] b, 1
-.[] c, 1
 . n
-.[]< a, 0
-[]= b, a, 6
-.[]> a, 0
-.[]> b, 0
+. b
+.< n
+= b, 20
+. __temp__0
+== __temp__0, n, 6
+?:= __label__0, __temp__0
+:= __label__1
+: __label__0
+.> n
+:= __label__2
+: __label__1
+.> b
+: __label__2
 endfunc
