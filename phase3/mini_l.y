@@ -35,7 +35,16 @@
     string type;
     string resultID;
  };
+ struct declarationparam_struct {
+    string code;
+    string type;
+    string resultID;
+ };
  struct decline_struct {
+    string code;
+    string type;
+ };
+ struct declparam_struct {
     string code;
     string type;
  };
@@ -167,7 +176,9 @@
   struct stathelp_struct *stathelp_val;
   struct statline_struct *statline_val;
   struct declaration_struct *declaration_val;
+  struct declarationparam_struct *declarationparam_val;
   struct decline_struct *decline_val;
+  struct declparam_struct *declparam_val;
   struct boolexp_struct *boolexp_val;
   struct relationandexpr_struct *relationandexpr_val;
   struct relationexpr_struct *relationexpr_val;
@@ -199,7 +210,9 @@
 %type <stathelp_val> stathelp
 %type <statline_val> statline
 %type <declaration_val> declaration
+%type <declarationparam_val> declarationparam
 %type <decline_val> decline
+%type <declparam_val> declparam
 %type <boolexp_val> boolexp
 %type <relationandexpr_val> relationandexpr
 %type <relationexpr_val> relationexpr
@@ -218,17 +231,17 @@
 %% 
 
 program:	                         {$$ = new program_struct();} 
-			| function program {
+			| program function {
             $$ = new program_struct(); 
             ostringstream os;
-            os << $1->code << $2->code;
+            os << $2->code;
             $$ ->code = os.str();
             cout << $$->code;
             }
 			   ;
 
 
-function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS decline END_PARAMS BEGIN_LOCALS decline END_LOCALS BEGIN_BODY statline END_BODY{  
+function:   FUNCTION identifier SEMICOLON BEGIN_PARAMS declparam END_PARAMS BEGIN_LOCALS decline END_LOCALS BEGIN_BODY statline END_BODY{  
                ostringstream os;
                $$ = new function_struct();
                os << "func " << $2->resultID<<endl;
@@ -299,6 +312,55 @@ decline:    {
                $$->code = os.str();
             }
             ;
+declparam:  {
+               $$ = new declparam_struct();
+            }
+            | declarationparam SEMICOLON declparam         
+            {
+               $$ = new declparam_struct();
+               ostringstream os;
+               os << $1->code << $3->code;
+               delete $1;
+               delete $3;
+               $$->code = os.str();
+            }
+            ;
+
+declarationparam:    identifier COMMA declarationparam         {
+                     $$ = new declarationparam_struct();
+                     ostringstream os;
+                     string tp = $3->type;
+                     $$->type = tp;
+                     $$->resultID = $3->resultID;
+                     if(tp == "array"){
+                        os << ".[] " << $1->resultID << ", " << $3->resultID << endl;
+                     }
+                     else if (tp == "ident"){
+                        os << ". " << $1->resultID << endl;
+                     }
+                     os << $3->code;
+                     $$->code = os.str();
+                     }
+                  | identifier COLON INTEGER {  
+                     ostringstream os;
+                     $$ = new declarationparam_struct();
+                     os << ". " << $1->resultID << endl;
+                     os << "= " << $1->resultID << ", " << "$0" << endl;
+                     $$->type = "ident";
+                     delete $1;
+                     $$->code = os.str();
+                  }
+                  | identifier COLON ARRAY L_SQUARE_BRACKET number R_SQUARE_BRACKET OF INTEGER {
+                     $$ = new declarationparam_struct();
+                     ostringstream os;
+                     $$->type = "array";
+                     os << ".[] " << $1->resultID << ", " << $5->resultID << endl;
+                     $$->resultID = $5->resultID;
+                     //os << ". " << $1->code;
+                     
+                     $$->code = os.str();
+                  }
+                  ;
 
 identifier:    IDENT   {
                   $$ = new identifier_struct;
@@ -501,7 +563,14 @@ statement:  var ASSIGN expression{
                $$->resultID = cont;
                $$->code = os.str();
             }
-            | RETURN expression         {printf("statement -> RETURN expression\n");}
+            | RETURN expression         {
+               $$ = new statement_struct();
+               ostringstream os;
+               os << $2->code;
+               os << "ret " << $2->resultID << endl;
+               $$->code = os.str();
+               delete $2;
+            }
             ;
             
 stathelp:            {$$ =new stathelp_struct(); }
@@ -805,7 +874,18 @@ term:       term1{
                      $$->index = $1->index;
             }
             | SUB term1         {printf("term -> SUB term1\n");}
-            | identifier L_PAREN expresscomm R_PAREN         {printf("term -> identifier L_PAREN expresscomm R_PAREN\n");}
+            | identifier L_PAREN expresscomm R_PAREN         {
+               $$ = new term_struct();
+               //set params here
+               ostringstream os;
+               string temp = createTemp();
+               os << ". " << temp << endl;
+               os << $3->code;
+               os << "param " << $3->resultID << endl;
+               os << "call " << $1->resultID << ", " << temp << endl;
+               $$->resultID = temp;
+               $$->code = os.str();
+            }
             ;
 
 term1:      var{
@@ -879,6 +959,7 @@ expresscomm:    expression                 {
                   $$->index = $1->index;
                   $$->type = $1->type;
                   $$->name = $1->name;
+                  $$->resultID = $1->resultID;
                   delete $1;
                }
                 | expression COMMA expresscomm         {
@@ -886,10 +967,11 @@ expresscomm:    expression                 {
                   ostringstream os;
                   os << $1->code;
                   os << $3->code;
-                  $$->code = $1->code;
+                  $$->code = os.str();
                   $$->index = $1->index;
                   $$->type = $1->type;
                   $$->name = $1->name;
+                  $$->resultID = $1->resultID;
                   delete $1;
                 }
                 ;
