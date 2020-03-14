@@ -40,13 +40,11 @@ beginbody	## main program
     ## make the array
     i := 2;
     while i <= sqrt_n beginloop
-       if a[i] == 0 then
+	    if a[i] == 0 then
           ## i prime, so eliminate its multiples
 	       j := i+i;
-          write j;
 	       while j <= n beginloop
 		       a[j] := 1;
-             write a[j];
 		       j := j+i;
 	       endloop;
        endif;
@@ -55,11 +53,10 @@ beginbody	## main program
 
     ## print primes
     i := 2;
-    while i <= n beginloop     
-       if a[i] == 0 then
+    while i <= n beginloop
+	    if a[i] == 0 then
 	       write i;
        endif;
        i := i + 1;
    endloop;
-   
 endbody

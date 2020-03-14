@@ -2413,7 +2413,7 @@ yyreduce:
                   (yyval.var_val)->resultID = temp;
                }
                else{
-                  (yyval.var_val)->resultID = (yyvsp[-1].expression_val)->resultID;
+                  (yyval.var_val)->resultID = temp;
                }
                //$$->code = $3->code;
                (yyval.var_val)->name = (yyvsp[-3].identifier_val)->resultID;

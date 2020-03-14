@@ -861,7 +861,7 @@ var:        identifier {
                   $$->resultID = temp;
                }
                else{
-                  $$->resultID = $3->resultID;
+                  $$->resultID = temp;
                }
                //$$->code = $3->code;
                $$->name = $1->resultID;
