@@ -8,5 +8,6 @@ endlocals
 beginbody
 	read a[0];
 	b[a[0]] := 20;
-	write b[0];
+	write b[0] , a[ 1 - 1];
+	write a[0];
 endbody

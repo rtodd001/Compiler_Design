@@ -122,6 +122,7 @@
     string resultID;
     string type;
     string index;
+    string index2;
     string name;
  };
  struct number_struct {
@@ -153,6 +154,8 @@
     continueCounter += counter;
     return os.str();
  }
+ vector<vector<string>> varBuffer;
+
 %}
 
 %union{
@@ -313,9 +316,9 @@ statement:  var ASSIGN expression{
                os <<  $3->code;
                string tp = $1->type;
                if(tp == "ident")
-                  os << "= " << $1->resultID;
+                  os << "= " << $1->name;
                else if(tp == "array")
-                  os << "[]= " << $1->name << ", " << $1->resultID;
+                  os << "[]= " << $1->name << ", " << $1->index;
                os  << ", " << $3->resultID << endl;
                delete $1;
                delete $3;
@@ -367,6 +370,8 @@ statement:  var ASSIGN expression{
                $$->code = os.str();
             }
             | DO BEGINLOOP statline ENDLOOP WHILE boolexp         {
+               //DO WHILE NEEDS TO DO IT ONCE
+               //FIX NEEDED
                $$ = new statement_struct();
                string cond = createLabel();
                string start_loop = createLabel();
@@ -399,6 +404,7 @@ statement:  var ASSIGN expression{
                //string contin = $12->name;
                //cout << "continue: " << contin << endl;
                ostringstream os;
+               os << ". " << $2->name << endl;
                os << $2->code;
                os << ". " << $2->resultID << endl;
                os << "= " << $2->resultID << ", " << $4->resultID << endl;
@@ -415,7 +421,7 @@ statement:  var ASSIGN expression{
                os <<  $10->code;
                string tp = $8->type;
                if(tp == "ident")
-                  os << "= " << $8->resultID;
+                  os << "= " << $8->name;
                else if(tp == "array")
                   os << "[]= " << $8->name << ", " << $8->index;
                os  << ", " << $10->resultID << endl;
@@ -436,11 +442,26 @@ statement:  var ASSIGN expression{
                ostringstream os;
                os << $2->code;
                string tp = $2->type;
-               if(tp == "array"){
-                  os << ".[]< " << $2->name << ", " << $2->index << endl;
+               if(!varBuffer.empty()){
+                  while(!varBuffer.empty()){
+                     vector<string> temp = varBuffer.back();
+                     string tp = temp.front();
+                     if(tp == "array"){
+                        os << ".[]< " << temp.at(2) << ", " << temp.back() << endl;
+                     }
+                     else
+                        os << ".< " << temp.at(2) << endl;
+                     varBuffer.erase(varBuffer.end());
+                  }
                }
-               else
-                  os << ".< " << $2->resultID<< endl;
+               else {
+                  string tp = $2->type;
+                  if(tp == "array"){
+                     os << ".[]< " << $2->name << ", " << $2->index << endl;
+                  }
+                  else
+                     os << ".< " << $2->name<< endl;
+               }
                delete $2;
                $$->code = os.str();
             }
@@ -448,12 +469,27 @@ statement:  var ASSIGN expression{
                $$ = new statement_struct();
                ostringstream os;
                os << $2->code;
-               string tp = $2->type;
-               if(tp == "array"){
-                  os << ".[]> " << $2->name << ", " << $2->index << endl;
+               if(!varBuffer.empty()){
+                  while(!varBuffer.empty()){
+                     vector<string> temp = varBuffer.back();
+                     string tp = temp.front();
+                     if(tp == "array"){
+                        os << ".[]> " << temp.at(2) << ", " << temp.back() << endl;
+                     }
+                     else
+                        os << ".> " << temp.at(2) << endl;
+                     varBuffer.erase(varBuffer.end());
+                  }
                }
-               else
-                  os << ".> " << $2->name << endl;
+               else {
+                  string tp = $2->type;
+                  if(tp == "array"){
+                     os << ".[]> " << $2->name << ", " << $2->index << endl;
+                  }
+                  else
+                     os << ".> " << $2->name << endl;
+               }
+               
                $$->code = os.str();
                delete $2;
                }
@@ -488,6 +524,12 @@ varline:    var {
                $$->type = $1->type;
                $$->name = $1->name;
                $$->index = $1->index;
+               vector <string> buff;
+               buff.push_back($1->type);
+               buff.push_back($1->resultID);
+               buff.push_back($1->name);
+               buff.push_back($1->index);
+               varBuffer.push_back(buff);
                delete $1;
                $$->code = os.str();
             }   
@@ -496,7 +538,24 @@ varline:    var {
                ostringstream os;
                os << $1->code << $3->code;
                $$->type = $1->type;
+               $$->resultID = $3->resultID;
                $$->index = $1->index;
+               $$->index2 = $3->index;
+               $$->name = $1->name;
+               vector <string> buff;
+               buff.push_back($1->type);
+               buff.push_back($1->resultID);
+               buff.push_back($1->name);
+               buff.push_back($1->index);
+               varBuffer.push_back(buff);
+               // vector <string> buff2;
+               // buff2.push_back($3->type);
+               // buff2.push_back($3->resultID);
+               // buff2.push_back($3->name);
+               // buff2.push_back($3->index);
+               // varBuffer.push_back(buff2);
+               //varBuffer.push_back(pair<string,string>($1->type, $1->type == "array" ? $1->name : $1->resultID));
+               //varBuffer.push_back(pair<string,string>($3->type, $3->type == "array" ? $3->name : $3->resultID));
                delete $1;
                delete $3;
                $$->code = os.str();
@@ -579,7 +638,11 @@ relationhelper:    expression comp expression         {
                      $$ = new relationhelper_struct();
                      string temp = createTemp();
                      ostringstream os;
+                     os << $1->code;
+                     os << $3->code;
                      os << ". " << temp << endl;
+                     string tp1 = $1->type;
+                     string tp2 = $3->type;
                      os << $2->resultID << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
                      $$->code = os.str();
                      delete $2;
@@ -774,24 +837,27 @@ term1:      var{
 var:        identifier {
                $$ = new var_struct();
                ostringstream os;
-               os << $1->code;
-               //$$->code = os.str();
+               string temp = createTemp();
+               os << ". " << temp << endl;
+               os << "= " << temp << ", " << $1->resultID << endl;
+               $$->code = os.str();
                ostringstream os1;
                os1 << $1->resultID;
-               $$->resultID = os1.str();
+               $$->resultID = temp;
                $$->name = os1.str();
                $$->type = "ident";
-               //$$->index = $1->index;
+               $$->index = $1->resultID;
+               delete $1;
             }
             | identifier L_SQUARE_BRACKET expression R_SQUARE_BRACKET         {
                $$ = new var_struct();
                ostringstream os;
                os << $3->code;
                string tp = $3->type;
+               string temp = createTemp();
+               os << ". " << temp << endl;
+               os << "=[] " << temp << ", " << $1->resultID << ", " << $3->resultID << endl;
                if(tp == "array"){
-                  string temp = createTemp();
-                  os << ". " << temp << endl;
-                  os << "=[] " << temp << ", " << $1->resultID << ", " << $3->index << endl;
                   $$->resultID = temp;
                }
                else{
@@ -800,6 +866,8 @@ var:        identifier {
                //$$->code = $3->code;
                $$->name = $1->resultID;
                $$->index = $3->resultID;
+               delete $1;
+               delete $3;
                $$->type = "array";
                $$->code = os.str();
             }

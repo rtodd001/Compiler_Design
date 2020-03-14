@@ -1,0 +1,20 @@
+function main;
+beginparams
+endparams
+beginlocals
+	n , c, i : integer;
+    a : array[10] of integer;
+endlocals
+beginbody
+	read n, c, i;
+    i := 0;
+    a[0] := c;
+	if a[c] == 0 then
+        write n;
+    endif;
+    a[c] := 5;
+    if a[c] == 0 then
+        write n;
+    endif;
+
+endbody

@@ -2,19 +2,46 @@ function main;
 beginparams
 endparams
 beginlocals
-	n , b, c : integer;
+	i , j, k , n ,a,b,c: integer;
+	t : array [20] of integer;
 
 endlocals
 beginbody
-	read n;
-	b := 20;
-	c := 15;
-	if n == 6 then
-	    if (b == 20) then
-			write b;
-		endif;
-		write n;
+
+	read i, j;
+	k := 20;
+	n := 20;
+	a:=500;
+	b:=400;
+	c:=300;
+	if i<j and j < n and i>=0 then
+		t[i] := i * 2;
+		t[j] := j * 2;
+		k := t[i];
+		t[i] := t[j];
+		t[j] := k;
+		write a;
 	else
-		write c;
-    endif;
+		write b;
+		while  i >= j or false 
+		beginloop
+			write c;
+			k := (1 + i - j ) % 3;
+			i := i - 1;
+			if k > 1 then
+				continue;
+			endif;
+			write k;
+		endloop;
+	endif;
+
+		write i, j, k;
+
+	if i < n and i >= 0 then
+		write t[i];
+	endif;
+
+	if j < n and j >=0 then
+		write t[j];
+	endif;
 endbody
