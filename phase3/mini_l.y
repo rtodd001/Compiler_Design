@@ -767,10 +767,10 @@ expression:     multiplicativeexp          {
                   ostringstream os1;
                   $$->name = $1->name;
                   os1 << $1->resultID;
-                  delete $1;
                   $$->resultID = os1.str();
                   $$->type = $1->type;
                   $$->index = $1->index;
+                  delete $1;
                }
                 | expression ADD multiplicativeexp {
                      $$ = new expression_struct();
@@ -780,11 +780,11 @@ expression:     multiplicativeexp          {
                      os << $3->code;
                      os << ". " << temp2 << endl;
                      os << "+ " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
-                     delete $1;
-                     delete $3;
                      $$->resultID = temp2;
                      $$->code = os.str();
                      $$->index = $1->index;
+                     delete $1;
+                     delete $3;                     
                   }
                 | expression SUB multiplicativeexp {
                      $$ = new expression_struct();
@@ -794,11 +794,12 @@ expression:     multiplicativeexp          {
                      os << $3->code;
                      os << ". " << temp2 << endl;
                      os << "- " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
-                     delete $1;
-                     delete $3;
+                     
                      $$->resultID = temp2;
                      $$->code = os.str();
                      $$->index = $1->index;
+                     delete $1;
+                     delete $3;
                   }
                 ;
 
@@ -811,9 +812,10 @@ multiplicativeexp:  term {
                         ostringstream os1;
                         os1 << $1->resultID;
                         $$->type = $1->type;
-                        delete $1;
+                        
                         $$->resultID = os1.str();
                         $$->index = $1->index;
+                        delete $1;
                      }
                     | multiplicativeexp MULT term {
                         $$ = new multiplicativeexp_struct();
@@ -824,11 +826,12 @@ multiplicativeexp:  term {
                         os << $3->code;
                         os << ". " << temp2 << endl;
                         os << "* " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
-                        delete $1;
-                        delete $3;
+                        
                         $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
+                        delete $1;
+                        delete $3;
                     }
                     | multiplicativeexp DIV term {
                         $$ = new multiplicativeexp_struct();
@@ -838,11 +841,12 @@ multiplicativeexp:  term {
                         os << $3->code;
                         os << ". " << temp2 << endl;
                         os << "/ " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
-                        delete $1;
-                        delete $3;
+                        
                         $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
+                        delete $1;
+                        delete $3;
                     }
                     | multiplicativeexp MOD term {
                         $$ = new multiplicativeexp_struct();
@@ -852,11 +856,12 @@ multiplicativeexp:  term {
                         os << $3->code;
                         os << ". " << temp2 << endl;
                         os << "% " << temp2 << ", " << $1->resultID << ", " << $3->resultID << endl;
-                        delete $1;
-                        delete $3;
+                        
                         $$->index = $1->index;
                         $$->resultID = temp2;
                         $$->code = os.str();
+                        delete $1;
+                        delete $3;
                     }
                     ;
 
@@ -869,11 +874,22 @@ term:       term1{
                      $$->type = $1->type;
                      ostringstream os1;
                      os1 << $1->resultID;
-                     delete $1;
+                     
                      $$->resultID = os1.str();
                      $$->index = $1->index;
+                     delete $1;
             }
-            | SUB term1         {printf("term -> SUB term1\n");}
+            | SUB term1         {
+               $$ = new term_struct();
+               ostringstream os;
+               string temp = createTemp();
+               os << $2->code;
+               os << ". " << temp << endl;
+               os << "- " << temp << ", 0 ," << $2->resultID << endl;
+               $$->resultID = temp;
+               $$->code = os.str();
+               delete $2;
+            }
             | identifier L_PAREN expresscomm R_PAREN         {
                $$ = new term_struct();
                //set params here
@@ -885,6 +901,8 @@ term:       term1{
                os << "call " << $1->resultID << ", " << temp << endl;
                $$->resultID = temp;
                $$->code = os.str();
+               delete $1;
+               delete $3;
             }
             ;
 

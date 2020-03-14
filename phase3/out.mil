@@ -1,50 +1,140 @@
-func fibonacci
-. k
-= k, $0
-. __temp__0
-= __temp__0, k
-. __temp__1
-<= __temp__1, __temp__0, 1
-?:= __label__0, __temp__1
-:= __label__1
-: __label__0
-ret 1
-:= __label__2
-: __label__1
-: __label__2
-. __temp__4
-. __temp__2
-= __temp__2, k
-. __temp__3
-- __temp__3, __temp__2, 1
-param __temp__3
-call fibonacci, __temp__4
-. __temp__7
-. __temp__5
-= __temp__5, k
-. __temp__6
-- __temp__6, __temp__5, 2
-param __temp__6
-call fibonacci, __temp__7
-. __temp__8
-+ __temp__8, __temp__4, __temp__7
-ret __temp__8
-endfunc
 func main
-. n
-. fib_n
+. r
+. x
+.[] a, 5
+.[] b, 3
+. __temp__0
+= __temp__0, r
+.< r
+. __temp__1
+=[] __temp__1, b, 0
+[]= b, 0, 1
+. __temp__2
+=[] __temp__2, b, 1
+[]= b, 1, 0
+. __temp__3
+=[] __temp__3, b, 2
+[]= b, 2, 0
+. __temp__4
+=[] __temp__4, b, 2
+. __temp__5
+=[] __temp__5, b, __temp__4
+. __temp__6
+=[] __temp__6, b, __temp__5
+. __temp__7
+=[] __temp__7, a, __temp__6
+. __temp__8
+= __temp__8, r
 . __temp__9
-= __temp__9, n
-.< n
+* __temp__9, 1, 9
 . __temp__10
-= __temp__10, fib_n
-. __temp__12
++ __temp__10, 4, __temp__9
 . __temp__11
-= __temp__11, n
-param __temp__11
-call fibonacci, __temp__12
-= fib_n, __temp__12
+% __temp__11, 27, 7
+. __temp__12
+/ __temp__12, __temp__11, 2
 . __temp__13
-= __temp__13, fib_n
-.> fib_n
+- __temp__13, __temp__10, __temp__12
+. __temp__14
++ __temp__14, __temp__13, 90
+. __temp__15
+* __temp__15, __temp__8, __temp__14
+[]= a, __temp__6, __temp__15
+. __temp__16
+=[] __temp__16, a, 1
+. __temp__17
+- __temp__17, 4, 2
+. __temp__18
++ __temp__18, __temp__17, 1
+. __temp__19
+- __temp__19, __temp__18, 3
+. __temp__20
++ __temp__20, __temp__19, 5
+[]= a, 1, __temp__20
+. __temp__21
+=[] __temp__21, a, 2
+. __temp__22
++ __temp__22, 3, 5
+. __temp__23
+- __temp__23, 1, __temp__22
+. __temp__24
++ __temp__24, 2, __temp__23
+. __temp__25
+- __temp__25, 4, __temp__24
+[]= a, 2, __temp__25
+. __temp__26
+=[] __temp__26, a, 3
+. __temp__27
+- __temp__27, 20, 5
+. __temp__28
+% __temp__28, __temp__27, 7
+. __temp__29
+% __temp__29, 8, 5
+. __temp__30
+- __temp__30, 6, 2
+. __temp__31
+/ __temp__31, 8, __temp__30
+. __temp__32
+- __temp__32, __temp__29, __temp__31
+. __temp__33
++ __temp__33, __temp__28, __temp__32
+[]= a, 3, __temp__33
+. __temp__34
+=[] __temp__34, b, 0
+. __temp__35
+=[] __temp__35, b, 0
+. __temp__36
++ __temp__36, __temp__34, __temp__35
+. __temp__37
+* __temp__37, 2, __temp__36
+. __temp__38
+=[] __temp__38, a, __temp__37
+[]= a, __temp__37, 10
+. __temp__39
+= __temp__39, r
+. __temp__40
+= __temp__40, r
+. __temp__41
+- __temp__41, 8, 2
+. __temp__42
+% __temp__42, __temp__40, __temp__41
+= r, __temp__42
+. __temp__43
+=[] __temp__43, a, 0
+. __temp__44
+=[] __temp__44, a, 1
+. __temp__45
+=[] __temp__45, a, 2
+. __temp__46
+=[] __temp__46, a, 3
+. __temp__47
+=[] __temp__47, a, 4
+. __temp__48
+= __temp__48, r
+.[]> a, 0
+.[]> a, 1
+.[]> a, 2
+.[]> a, 3
+.[]> a, 4
+.> r
+. __temp__49
+= __temp__49, x
+. __temp__50
+- __temp__50, 0 ,500
+. __temp__51
+- __temp__51, 500, __temp__50
+= x, __temp__51
+. __temp__52
+= __temp__52, x
+.> x
+. __temp__53
+= __temp__53, x
+. __temp__54
+= __temp__54, x
+. __temp__55
+- __temp__55, 0 ,__temp__54
+= x, __temp__55
+. __temp__56
+= __temp__56, x
+.> x
 endfunc
